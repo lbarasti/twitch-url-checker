@@ -1,27 +1,30 @@
 # url-checker
 
-TODO: Write a description here
+A concurrent, terminal-based tool to check the status of a set of URLs. Written over live-coding sessions at https://www.twitch.tv/lbarasti
 
 ## Installation
 
-TODO: Write installation instructions here
+```
+shards install
+```
 
 ## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-TODO: Write development instructions here
-
-## Contributing
-
-1. Fork it (<https://github.com/your-github-user/url-checker/fork>)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+```
+crystal src/url-checker.cr
+```
+Sample output:
+```
++--------------------------+--------------+--------------+
+| Url                      |      Success |      Failure |
++--------------------------+--------------+--------------+
+| http://google.com        |            1 |            0 |
+| http://localhost:3000    |            0 |            1 |
+| http://non-existing-1312 |            0 |            1 |
+| .com                     |              |              |
+| https://amazon.co.uk     |            1 |            0 |
++--------------------------+--------------+--------------+
+```
 
 ## Contributors
 
-- [lorenzo.barasti](https://github.com/your-github-user) - creator and maintainer
+- [lorenzo.barasti](https://github.com/lbarasti) - creator and maintainer
