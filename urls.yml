@@ -1,0 +1,5 @@
+urls:
+  - http://google.com
+  - https://amazon.co.uk
+  - http://localhost:3000
+  - http://non-existing-1312.com

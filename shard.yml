@@ -8,6 +8,10 @@ targets:
   url-checker:
     main: src/url-checker.cr
 
+dependencies:
+  tablo:
+    github: hutou/tablo
+
 crystal: 0.31.1
 
 license: MIT
