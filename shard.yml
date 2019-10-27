@@ -1,0 +1,13 @@
+name: url-checker
+version: 0.1.0
+
+authors:
+  - lorenzo.barasti <lbarasti@users.noreply.github.com>
+
+targets:
+  url-checker:
+    main: src/url-checker.cr
+
+crystal: 0.31.1
+
+license: MIT
