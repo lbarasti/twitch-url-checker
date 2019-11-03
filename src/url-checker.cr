@@ -1,77 +1,28 @@
-require "http/client"
-require "yaml"
-require "tablo"
+require "./lib/concurrency_util"
+require "./lib/tasks/url_generator"
+require "./lib/tasks/status_checker"
+require "./lib/tasks/stats_logger"
+require "./lib/tasks/printer"
 
-get_urls = -> {
-  file_lines = File.read("./urls.yml")
-  YAML.parse(file_lines)["urls"].as_a.map(&.as_s)
-}
+# url_generator -> [url] -> status_checker_0 -> [{url, result}] -> stats_logger -> [stats::info] -> printer
+#                        \_ status_checker_1 _/
 
-get_status = ->(url : String) {
-  begin
-    res = HTTP::Client.get url
-    {url, res.status_code}
-  rescue e : Errno | Socket::Addrinfo::Error
-    {url, e}
-  ensure
-  end
-}
-
+WORKERS = 2
 url_stream = Channel(String).new
 result_stream = Channel({String, Int32 | Exception}).new
+stats_stream = Channel(Array({String, Stats::Info})).new
 
-spawn do
-  get_urls.call.each { |url|
-    url_stream.send url
-  }
-end
-
-2.times {
-  spawn do
-    loop do
-      url = url_stream.receive
-      result = get_status.call(url)
-      
-      result_stream.send result
-    end
-  end
+every(2.seconds) {
+  UrlGenerator.run("./urls.yml", url_stream)
 }
 
-stats = Hash(String, {success: Int32, failure: Int32}).new({success: 0, failure: 0})
-loop do
-  url, result = result_stream.receive
-  current_value = stats[url]
-  case result
-  when Int32
-    if result < 400
-      stats[url] = {
-        success: current_value["success"] + 1,
-        failure: current_value["failure"]
-      }
-    else
-      stats[url] = { # TODO: refactor to avoid repetition
-        success: current_value["success"],
-        failure: current_value["failure"] + 1
-      }
-    end
-  when Exception
-    stats[url] = {
-      success: current_value["success"],
-      failure: current_value["failure"] + 1
-    }
-  end
-  data = stats.map { |k, v|
-    [k, v["success"], v["failure"]]
-  }
-  table = Tablo::Table.new(data) do |t| # TODO: extract to function
-    t.add_column("Url", width: 24) { |n| n[0] }
-    t.add_column("Success") { |n| n[1] }
-    t.add_column("Failure") { |n| n[2] }
-  end
-  puts table
-end
+WORKERS.times {
+  StatusChecker.run(url_stream, result_stream)
+}
 
-# url_generator -> [url] -> worker_0 -> [{url, result}] -> printer
-#                        \_ worker_1 _/ 
+StatsLogger.run(result_stream, stats_stream)
 
+Printer.run(stats_stream)
+
+sleep
 puts "goodbye"
