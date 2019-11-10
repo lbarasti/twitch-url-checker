@@ -1,3 +1,5 @@
+workers: 2
+period: 2 # seconds
 urls:
   - http://google.com
   - https://amazon.co.uk
