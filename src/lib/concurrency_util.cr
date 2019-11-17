@@ -1,4 +1,4 @@
-require "./diagnostic_logger"
+require "./logging"
 module ConcurrencyUtil
   extend Logging
 
@@ -13,18 +13,22 @@ module ConcurrencyUtil
 
   def every(period : Time::Span,
     interrupt : Channel(Nil),
-    &block : -> T) forall T
-    spawn(name: "generator") do
-      loop do
-        select
-        when timer(period).receive
-          block.call
-        when interrupt.receive
-          ConcurrencyUtil.logger.info("shutting down")
-          break
+    &block : -> Enumerable(T)) forall T
+    Channel(T).new.tap { |out_stream|
+      spawn(name: "generator") do
+        loop do
+          select
+          when timer(period).receive
+            block.call >> out_stream
+          when interrupt.receive
+            ConcurrencyUtil.logger.info("shutting down")
+            break
+          end
         end
+      ensure
+        out_stream.close
       end
-    end
+    }
   end
 end
 

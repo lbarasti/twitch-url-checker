@@ -5,3 +5,9 @@ urls:
   - https://amazon.co.uk
   - http://non-existing-1312.com
   - https://crystal-lang.org
+logger:
+  level: DEBUG
+  appender:
+    name: FILE
+    class: FileAppender
+    file: log.txt

@@ -1,5 +1,9 @@
 version: 1.0
 shards:
+  diagnostic_logger:
+    github: lbarasti/diagnostic-logger
+    commit: 1c38e90ba8abfbbfdd9cefedca8e91faea78dca0
+
   tablo:
     github: hutou/tablo
     version: 0.9.1

@@ -11,6 +11,8 @@ targets:
 dependencies:
   tablo:
     github: hutou/tablo
+  diagnostic_logger:
+    github: lbarasti/diagnostic-logger
 
 crystal: 0.31.1
 

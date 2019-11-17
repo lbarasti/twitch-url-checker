@@ -1,5 +1,5 @@
+require "diagnostic_logger"
 require "./lib/config"
-require "./lib/diagnostic_logger"
 require "./lib/concurrency_util"
 require "./lib/tasks/status_checker"
 require "./lib/tasks/stats_logger"
@@ -12,26 +12,23 @@ include ConcurrencyUtil
 config = Config.load
 logger = DiagnosticLogger.new("main")
 interrupt = Channel(Nil).new
-url_stream = Channel(String).new
-result_stream = Channel({String, Int32 | Exception}).new
-stats_stream = Channel(Array({String, Stats::Info})).new
+
+
 Signal::INT.trap do
   logger.info("shutting down")
   interrupt.send nil
 end
 
-every(config.period, interrupt: interrupt) {
+url_stream = every(config.period, interrupt: interrupt) {
   logger.info("sending urls")
-  Config.load.urls >> url_stream
+  Config.load.urls
 }
 
-config.workers.times {
-  StatusChecker.run(url_stream, result_stream)
-}
+result_stream = StatusChecker.run(url_stream, workers: config.workers)
 
-StatsLogger.run(result_stream, stats_stream)
+stats_stream = StatsLogger.run(result_stream)
 
-Printer.run(stats_stream)
+done = Printer.run(stats_stream)
 
-sleep
-puts "goodbye"
+done.receive?
+puts "\rgoodbye"
