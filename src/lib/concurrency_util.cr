@@ -12,10 +12,11 @@ module ConcurrencyUtil
   end
 
   def every(period : Time::Span,
-    interrupt : Channel(Nil),
+    interrupt : Channel(Nil) = Channel(Nil).new,
+    name : String = "generator",
     &block : -> Enumerable(T)) forall T
     Channel(T).new.tap { |out_stream|
-      spawn(name: "generator") do
+      spawn(name: name) do
         loop do
           select
           when timer(period).receive

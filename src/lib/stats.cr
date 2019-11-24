@@ -1,9 +1,12 @@
 class Stats
-  alias Info = NamedTuple(success: Int32, failure: Int32)
+  alias Info = NamedTuple(url: String, success: Int32, failure: Int32)
   include Enumerable({String, Info})
   delegate each, to: @hash
+  delegate values, to: @hash
   def initialize
-    @hash = Hash(String, {success: Int32, failure: Int32}).new({success: 0, failure: 0})
+    @hash = Hash(String, Info).new { |hash, key|
+      {url: key, success: 0, failure: 0}
+    }
   end
   def log_success(url : String)
     current = @hash[url][:success]
