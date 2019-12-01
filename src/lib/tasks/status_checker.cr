@@ -3,16 +3,20 @@ require "../logging"
 
 module StatusChecker
   extend Logging
+
+  record Success, url : String, status_code : Int32, response_time : Time::Span
+  record Failure, url : String, err : Exception
   private def self.get_status(url : String)
+    start_time = Time.utc
     res = HTTP::Client.get url
-    {url, res.status_code}
+    Success.new(url, res.status_code, Time.utc - start_time)
   rescue e : Errno | Socket::Addrinfo::Error | OpenSSL::SSL::Error
-    {url, e}
+    Failure.new(url, e)
   end
 
   def self.run(url_stream, workers : Int32)
     countdown = Channel(Nil).new(workers)
-    Channel({String, Int32 | Exception}).new.tap { |url_status_stream|
+    Channel(Success | Failure).new.tap { |url_status_stream|
       spawn(name: "supervisor") do
         workers.times {
           countdown.receive

@@ -33,6 +33,32 @@ module ConcurrencyUtil
   end
 end
 
+abstract class Channel(T)
+  def partition(&predicate : T -> Bool) : {Channel(T), Channel(T)}
+    {Channel(T).new, Channel(T).new}.tap { |pass, fail|
+      spawn do
+        loop do
+          value = self.receive
+          predicate.call(value) ? pass.send(value) : fail.send(value)
+        end
+      rescue Channel::ClosedError
+        pass.close; fail.close
+      end
+    }
+  end
+
+  def |(other : Channel(K)) : Channel(T | K)  forall K
+    Channel(K | T).new.tap { |output_stream|
+      spawn do
+        loop do
+          output_stream.send Channel.receive_first(self, other)
+        end
+      rescue Channel::ClosedError
+        output_stream.close # TODO: only close the downstream channel once both the input streams have been closed
+      end
+    }
+  end
+end
 module Enumerable(T)
   def >>(channel : Channel(T))
     spawn do
