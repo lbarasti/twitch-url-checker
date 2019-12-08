@@ -31,7 +31,9 @@ url_stream = every(config.period, interrupt: interrupt_url_generation) {
   Config.load.urls
 }
 
-status_stream = StatusChecker.run(url_stream, workers: config.workers)
+status_stream = url_stream.map(workers: config.workers) { |url|
+  StatusChecker.run(url)
+}
 
 success_stream, failure_stream = status_stream.partition { |v|
   v.is_a?(StatusChecker::Success) && v.status_code < 400

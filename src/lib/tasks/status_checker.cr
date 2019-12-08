@@ -14,29 +14,7 @@ module StatusChecker
     Failure.new(url, e)
   end
 
-  def self.run(url_stream, workers : Int32)
-    countdown = Channel(Nil).new(workers)
-    Channel(Success | Failure).new.tap { |url_status_stream|
-      spawn(name: "supervisor") do
-        workers.times {
-          countdown.receive
-        }
-        url_status_stream.close
-      end
-      workers.times { |w_i|
-        spawn(name: "worker_#{w_i}") do
-          loop do
-            url = url_stream.receive
-            result = get_status(url)
-            
-            url_status_stream.send result
-          end
-        rescue Channel::ClosedError
-          logger.info("input stream was closed")
-        ensure
-          countdown.send nil
-        end
-      }
-    }
+  def self.run(url : String)
+    get_status(url)
   end
 end

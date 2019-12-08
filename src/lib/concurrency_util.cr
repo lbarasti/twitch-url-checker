@@ -34,6 +34,30 @@ module ConcurrencyUtil
 end
 
 abstract class Channel(T)
+  extend Logging
+  def map(workers : Int32 = 1, &block : T -> K) : Channel(K) forall K
+    countdown = Channel(Nil).new(workers)
+    Channel(K).new.tap { |output_stream|
+      spawn(name: "supervisor") do
+        workers.times {
+          countdown.receive
+        }
+        output_stream.close
+      end
+      workers.times { |w_i|
+        spawn(name: "worker_#{w_i}") do
+          loop do
+            output_stream.send block.call(self.receive)
+          end
+        rescue Channel::ClosedError
+          Channel.logger.info("input stream was closed")
+        ensure
+          countdown.send nil
+        end
+      }
+    }
+  end
+
   def partition(&predicate : T -> Bool) : {Channel(T), Channel(T)}
     {Channel(T).new, Channel(T).new}.tap { |pass, fail|
       spawn do

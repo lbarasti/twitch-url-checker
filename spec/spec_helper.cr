@@ -1,2 +1,2 @@
 require "spec"
-require "../src/url-checker"
+require "../src/lib/concurrency_util"
