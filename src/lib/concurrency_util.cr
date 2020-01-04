@@ -20,7 +20,9 @@ module ConcurrencyUtil
         loop do
           select
           when timer(period).receive
-            block.call >> out_stream
+            block.call.each { |value|
+              out_stream.send value
+            }
           when interrupt.receive
             ConcurrencyUtil.logger.info("shutting down")
             break
@@ -81,14 +83,5 @@ abstract class Channel(T)
         output_stream.close # TODO: only close the downstream channel once both the input streams have been closed
       end
     }
-  end
-end
-module Enumerable(T)
-  def >>(channel : Channel(T))
-    spawn do
-      each { |value|
-        channel.send value
-      }
-    end
   end
 end

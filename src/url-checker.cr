@@ -43,14 +43,15 @@ enriched_success_stream = AvgResponseTime.run(success_stream, width: 5)
 
 stats_store = StatsStore.new
 
-StatsWriter.run(enriched_success_stream | failure_stream, stats_store)
+writer_done = StatsWriter.run(enriched_success_stream | failure_stream, stats_store)
 
 stats_stream = every(3.seconds, name: "stats_watcher", interrupt: interrupt_ui) {
   logger.info("reading from stats store")
   [stats_store.get]
 }
 
-done = Printer.run(stats_stream)
+printer_done = Printer.run(stats_stream)
 
-done.receive?
+printer_done.receive?
+writer_done.receive?
 puts "\rgoodbye"
