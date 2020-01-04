@@ -9,6 +9,8 @@ module Printer
     Channel(Nil).new.tap { |done|
       spawn do
         win = Crt::Window.new(48, 120)
+        win.print(0, 0, "Awaiting data...")
+        win.refresh
         loop do
           data = stats_stream.receive.map { |v|
             failure_with_alert = "#{v[:failure]}#{v[:alert_on] ? "*" : ""}"
