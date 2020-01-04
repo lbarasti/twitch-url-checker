@@ -14,6 +14,9 @@ dependencies:
   diagnostic_logger:
     github: lbarasti/diagnostic_logger
     version: 1.0.0
+  crt:
+    github: maiha/crt.cr
+    version: 0.4.0
 
 crystal: 0.31.1
 

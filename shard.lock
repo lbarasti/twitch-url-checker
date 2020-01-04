@@ -1,5 +1,9 @@
 version: 1.0
 shards:
+  crt:
+    github: maiha/crt.cr
+    version: 0.4.0
+
   diagnostic_logger:
     github: lbarasti/diagnostic_logger
     version: 1.0.0

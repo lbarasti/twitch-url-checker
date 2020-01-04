@@ -52,4 +52,5 @@ printer_done = Printer.run(stats_stream)
 
 printer_done.receive?
 writer_done.receive?
+puts stats_store.get
 puts "\rgoodbye"

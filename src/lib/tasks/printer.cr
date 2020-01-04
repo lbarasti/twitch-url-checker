@@ -1,4 +1,5 @@
 require "tablo"
+require "crt"
 require "../logging"
 
 module Printer
@@ -7,6 +8,7 @@ module Printer
   def self.run(stats_stream)
     Channel(Nil).new.tap { |done|
       spawn do
+        win = Crt::Window.new(48, 120)
         loop do
           data = stats_stream.receive.map { |v|
             failure_with_alert = "#{v[:failure]}#{v[:alert_on] ? "*" : ""}"
@@ -18,11 +20,14 @@ module Printer
             t.add_column("Failure") { |n| n[2] }
             t.add_column("Avg RT") { |n| n[3] }
           end
-          puts table
+          win.clear
+          win.print(0, 0, table.to_s)
+          win.refresh
         end
       rescue Channel::ClosedError
         logger.info("input stream was closed")
       ensure
+        Crt.done
         done.close
       end
     }
