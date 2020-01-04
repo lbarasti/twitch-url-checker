@@ -11,8 +11,8 @@ module StatsWriter
           when {StatusChecker::Success, Time::Span} # TODO: turn tuple into a type, so that we don't have to make assumptions about the status code of the response
             status_obj, avg_response_time = received.as({StatusChecker::Success, Time::Span})
             stats_store.log_success(status_obj.url, avg_response_time)
-          when StatusChecker::Failure, StatusChecker::Success
-            stats_store.log_failure(received.url)
+          when Alerting::StatusWithAlert
+            stats_store.log_failure(received.status.url, received.alert_on)
           end
         end
       rescue Channel::ClosedError

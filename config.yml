@@ -3,7 +3,7 @@ period: 2 # seconds
 urls:
   - http://google.com
   - https://amazon.co.uk
-  - http://non-existing-1312.com
+  - https://github.com/non-existing-project
   - https://crystal-lang.org
 logger:
   level: DEBUG

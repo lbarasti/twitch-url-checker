@@ -9,7 +9,8 @@ module Printer
       spawn do
         loop do
           data = stats_stream.receive.map { |v|
-            [v[:url], v[:success], v[:failure], v[:avg_response_time].total_milliseconds]
+            failure_with_alert = "#{v[:failure]}#{v[:alert_on] ? "*" : ""}"
+            [v[:url], v[:success], failure_with_alert, v[:avg_response_time].total_milliseconds]
           }
           table = Tablo::Table.new(data) do |t|
             t.add_column("Url", width: 24) { |n| n[0] }

@@ -1,10 +1,7 @@
 require "diagnostic_logger"
 require "./lib/config"
 require "./lib/concurrency_util"
-require "./lib/tasks/status_checker"
-require "./lib/tasks/stats_writer"
-require "./lib/tasks/printer"
-require "./lib/tasks/avg_response_time"
+require "./lib/tasks/*"
 require "./lib/server/stats_store"
 
 # url_generator -> [url] -> status_checker_0 -> [status] -> mvg_avg -> [enriched_status]
@@ -40,10 +37,11 @@ success_stream, failure_stream = status_stream.partition { |v|
 }
 
 enriched_success_stream = AvgResponseTime.run(success_stream, width: 5)
+enriched_failure_stream = Alerting.run(failure_stream, failures: 3, time_range: 10.seconds)
 
 stats_store = StatsStore.new
 
-writer_done = StatsWriter.run(enriched_success_stream | failure_stream, stats_store)
+writer_done = StatsWriter.run(enriched_success_stream | enriched_failure_stream, stats_store)
 
 stats_stream = every(3.seconds, name: "stats_watcher", interrupt: interrupt_ui) {
   logger.info("reading from stats store")
